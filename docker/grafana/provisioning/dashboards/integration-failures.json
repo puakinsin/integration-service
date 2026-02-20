@@ -1,0 +1,62 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "integration-failures",
+    "title": "Integration Failures",
+    "tags": ["integration", "failures"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "type": "table",
+        "title": "Recent DLQ Events",
+        "targets": [
+          {
+            "rawSql": "SELECT event_type, reason, retry_count, last_error, failed_at FROM dlq ORDER BY failed_at DESC LIMIT 20",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "type": "graph",
+        "title": "DLQ by Event Type",
+        "targets": [
+          {
+            "expr": "sum(integration_dlq_total) by (event_type)",
+            "legendFormat": "{{event_type}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "type": "graph",
+        "title": "Retries over Time",
+        "targets": [
+          {
+            "expr": "sum(rate(integration_retries_total[5m])) by (event_type)",
+            "legendFormat": "{{event_type}}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "type": "graph",
+        "title": "Odoo Errors by Endpoint",
+        "targets": [
+          {
+            "expr": "sum(rate(integration_odoo_api_errors_total[5m])) by (endpoint, code)",
+            "legendFormat": "{{endpoint}} - {{code}}"
+          }
+        ]
+      }
+    ]
+  }
+}

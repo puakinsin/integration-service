@@ -1,0 +1,86 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "integration-overview",
+    "title": "Integration Overview",
+    "tags": ["integration"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "type": "graph",
+        "title": "Events Received",
+        "targets": [
+          {
+            "expr": "sum(rate(integration_events_received_total[5m])) by (event_type)",
+            "legendFormat": "{{event_type}}"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "type": "graph",
+        "title": "Events Processed",
+        "targets": [
+          {
+            "expr": "sum(rate(integration_events_processed_total[5m])) by (status)",
+            "legendFormat": "{{status}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "type": "graph",
+        "title": "Processing Duration (p95)",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(integration_event_processing_duration_ms_bucket[5m])) by (le, event_type))",
+            "legendFormat": "p95 {{event_type}}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "type": "stat",
+        "title": "Queue Depth",
+        "targets": [
+          {
+            "expr": "integration_queue_depth",
+            "legendFormat": "{{queue}}"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "type": "graph",
+        "title": "DLQ Events",
+        "targets": [
+          {
+            "expr": "sum(integration_dlq_total) by (event_type, reason)",
+            "legendFormat": "{{event_type}} - {{reason}}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "type": "graph",
+        "title": "Odoo API Errors",
+        "targets": [
+          {
+            "expr": "sum(integration_odoo_api_errors_total) by (endpoint)",
+            "legendFormat": "{{endpoint}}"
+          }
+        ]
+      }
+    ]
+  }
+}

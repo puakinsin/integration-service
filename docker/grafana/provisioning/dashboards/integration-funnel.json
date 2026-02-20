@@ -1,0 +1,118 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "integration-funnel",
+    "title": "Order Processing Funnel",
+    "tags": ["integration", "orders"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 6, "w": 4, "x": 0, "y": 0},
+        "type": "stat",
+        "title": "Woo Orders Received",
+        "targets": [
+          {
+            "expr": "sum(integration_events_received_total{source=\"woo\",event_type=\"woo.order.created\"})",
+            "legendFormat": ""
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 6, "w": 4, "x": 4, "y": 0},
+        "type": "stat",
+        "title": "Queued",
+        "targets": [
+          {
+            "expr": "integration_queue_depth{queue=\"woo-events\"}",
+            "legendFormat": ""
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 6, "w": 4, "x": 8, "y": 0},
+        "type": "stat",
+        "title": "Processing",
+        "targets": [
+          {
+            "expr": "sum(integration_events_processed_total{status=\"processing\"})",
+            "legendFormat": ""
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 6, "w": 4, "x": 12, "y": 0},
+        "type": "stat",
+        "title": "Succeeded",
+        "targets": [
+          {
+            "expr": "sum(integration_events_processed_total{status=\"succeeded\"})",
+            "legendFormat": ""
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 6, "w": 4, "x": 16, "y": 0},
+        "type": "stat",
+        "title": "Failed",
+        "targets": [
+          {
+            "expr": "sum(integration_events_processed_total{status=\"failed\"})",
+            "legendFormat": ""
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "gridPos": {"h": 6, "w": 4, "x": 20, "y": 0},
+        "type": "stat",
+        "title": "In DLQ",
+        "targets": [
+          {
+            "expr": "sum(integration_dlq_total)",
+            "legendFormat": ""
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "gridPos": {"h": 12, "w": 24, "x": 0, "y": 6},
+        "type": "graph",
+        "title": "Order Processing Over Time",
+        "targets": [
+          {
+            "expr": "sum(rate(integration_events_received_total{source=\"woo\"}[5m]))",
+            "legendFormat": "Received"
+          },
+          {
+            "expr": "sum(rate(integration_events_processed_total{status=\"succeeded\"}[5m]))",
+            "legendFormat": "Succeeded"
+          },
+          {
+            "expr": "sum(rate(integration_dlq_total[5m]))",
+            "legendFormat": "DLQ"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "gridPos": {"h": 10, "w": 24, "x": 0, "y": 18},
+        "type": "table",
+        "title": "Recent Orders in Odoo",
+        "targets": [
+          {
+            "rawSql": "SELECT woo_order_id, odoo_sale_order_id, woo_status, odoo_status, last_sync_at FROM order_map ORDER BY last_sync_at DESC LIMIT 50",
+            "refId": "A"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,8 +1,11 @@
 version: '3.8'
 
 services:
-  api:
-    build: .
+  # Integration API
+  integration-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -13,15 +16,38 @@ services:
       - ODOO_USERNAME=admin@elitaco.my
       - ODOO_PASSWORD=admin
       - WOO_WEBHOOK_SECRET=${WOO_WEBHOOK_SECRET:-}
-      - APP_SECRET=elitaco-secret-key
-      - LOG_LEVEL=INFO
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY:-internal-secret}
+      - LOG_LEVEL=info
     depends_on:
       - postgres
       - redis
     restart: unless-stopped
+    networks:
+      - integration-network
 
+  # Integration Worker
+  integration-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run worker
+    environment:
+      - DATABASE_URL=postgresql://odoo:odoo@postgres:5432/integration
+      - REDIS_URL=redis://redis:6379/0
+      - ODOO_URL=http://odoo:7089
+      - ODOO_DB=odoo
+      - ODOO_USERNAME=admin@elitaco.my
+      - ODOO_PASSWORD=admin
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - integration-network
+
+  # PostgreSQL
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     environment:
       - POSTGRES_USER=odoo
       - POSTGRES_PASSWORD=odoo
@@ -29,22 +55,59 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - integration-network
 
+  # Redis
   redis:
     image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
     restart: unless-stopped
+    networks:
+      - integration-network
 
-  rq-worker:
-    build: .
-    command: rq worker events
-    environment:
-      - DATABASE_URL=postgresql://odoo:odoo@postgres:5432/integration
-      - REDIS_URL=redis://redis:6379/0
-      - ODOO_URL=http://odoo:7089
-    depends_on:
-      - postgres
-      - redis
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
     restart: unless-stopped
+    networks:
+      - integration-network
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - postgres
+    restart: unless-stopped
+    networks:
+      - integration-network
+
+networks:
+  integration-network:
+    driver: bridge
 
 volumes:
   postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
