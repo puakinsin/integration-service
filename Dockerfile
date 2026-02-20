@@ -4,12 +4,16 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install --production
+RUN npm install
 
 # Copy source
-COPY dist/ ./dist/
+COPY tsconfig.json ./
+COPY src/ ./src/
+
+# Build TypeScript
+RUN npm run build
 
 # Expose port
 EXPOSE 8000
 
-CMD ["node", "dist/api/server.js"]
+CMD ["npm", "start"]
