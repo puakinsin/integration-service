@@ -7,20 +7,16 @@
     "build": "tsc",
     "start": "node dist/api/server.js",
     "dev": "ts-node src/api/server.ts",
-    "worker": "ts-node src/worker/worker.ts",
-    "migrate": "knex migrate:latest --knexfile config/knexfile.ts",
-    "docker:build": "docker build -t integration-service ."
+    "worker": "ts-node src/worker/worker.ts"
   },
   "dependencies": {
     "fastify": "^4.25.0",
     "@fastify/cors": "^8.5.0",
-    "@fastify/helmet": "^7.0.0",
     "bullmq": "^5.1.0",
     "ioredis": "^5.3.2",
     "knex": "^3.1.0",
     "pg": "^8.11.3",
     "yaml": "^2.3.4",
-    "winston": "^3.11.0",
     "pino": "^8.17.0",
     "zod": "^3.22.4",
     "uuid": "^9.0.1",
@@ -31,7 +27,6 @@
     "@types/node": "^20.10.0",
     "@types/uuid": "^9.0.7",
     "typescript": "^5.3.3",
-    "ts-node": "^10.9.2",
-    "knex-types": "^0.2.0"
+    "ts-node": "^10.9.2"
   }
 }
